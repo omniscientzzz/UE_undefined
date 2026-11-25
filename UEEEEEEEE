@@ -1,96 +1,3 @@
---==========================================================================
--- [AC Patch from LxY V2] Anti-Cheat & Identity Elevation Wrapper (MCP Adapted: Potassium)
---==========================================================================
-do
-    local env = (type(getgenv) == "function" and getgenv()) or _G
-    local setId = (type(setthreadidentity) == "function" and setthreadidentity)
-        or (type(setidentity) == "function" and setidentity)
-    local getId = (type(getthreadidentity) == "function" and getthreadidentity)
-        or (type(getidentity) == "function" and getidentity)
-
-    -- 1. 環境安全旗標（繞過 Luarmor 反除錯與 UI 特效檢測）
-    env.NoAnticheat = true
-    env.SecureMode = false
-    env.LUARMOR_SkipAntidebugDevMode = true
-    env.LUARMOR_AllowKeyCheckSkip = true
-
-    -- 2. 執行緒權限提升（提權至等級 8，避開 Rivals 對 CFrame/座標瞬移的 AC 檢測）
-    if setId then
-        pcall(setId, 8)
-    end
-
-    -- 3. 屬性安全寫入封裝（供手動呼叫，並透過 __newindex 自動涵蓋腳本內直接賦值 .CFrame =）
-    if not env.rageSetCFrame then
-        env.rageSetCFrame = function(part, cf)
-            if setId and getId then
-                local id = getId()
-                setId(8)
-                local ok = pcall(function() part.CFrame = cf end)
-                setId(id)
-                if ok then return end
-            end
-            pcall(function() part.CFrame = cf end)
-        end
-    end
-
-    if not env.__ac_patch_applied then
-        env.__ac_patch_applied = true
-
-        local Players = game:GetService("Players")
-        local lp = Players.LocalPlayer
-            or (function()
-                Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-                return Players.LocalPlayer
-            end)()
-
-        -- 4A. 攔截直接呼叫 lp.Kick(...)
-        if lp and type(hookfunction) == "function" and type(newcclosure) == "function" then
-            local oldKick
-            oldKick = hookfunction(lp.Kick, newcclosure(function(self, msg, ...)
-                if self == lp then
-                    warn("[AC Bypass] Intercepted Kick() call: " .. tostring(msg))
-                    return nil
-                end
-                return oldKick(self, msg, ...)
-            end))
-        end
-
-        -- 4B. 攔截冒號呼叫 lp:Kick(...) (__namecall) 與自動提權 CFrame 寫入 (__newindex)
-        if type(hookmetamethod) == "function" and type(newcclosure) == "function" then
-            if type(getnamecallmethod) == "function" then
-                local oldNamecall
-                oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-                    if self == lp and getnamecallmethod() == "Kick" then
-                        local msg = ...
-                        warn("[AC Bypass] Intercepted :Kick() namecall: " .. tostring(msg))
-                        return nil
-                    end
-                    return oldNamecall(self, ...)
-                end))
-            end
-
-            if setId and getId and type(checkcaller) == "function" then
-                local oldNewindex
-                oldNewindex = hookmetamethod(game, "__newindex", newcclosure(function(self, key, val)
-                    if checkcaller() and key == "CFrame" then
-                        local prevId = getId()
-                        if prevId ~= 8 then
-                            setId(8)
-                            local ok, err = pcall(oldNewindex, self, key, val)
-                            setId(prevId)
-                            if not ok then error(err, 2) end
-                            return
-                        end
-                    end
-                    return oldNewindex(self, key, val)
-                end))
-            end
-        end
-    end
-end
--- [AC Patch End]
---==========================================================================
-
 -- Hello from milkyboy
 
 if not game:IsLoaded() then
@@ -27495,7 +27402,7 @@ local function directEntry(...)
           if not (not sharedSlot1_23.current) then
             sharedSlot1_23.current = getfenv().pcall
             sharedSlot1_24.current = getfenv().queue_on_teleport
-            sharedSlot1_25.current = "local canCheck = type(isfile) == \"function\";\n\t\tif canCheck and not isfile(\"LOAD_PERSISTENT\") then return end;\n\t\tif canCheck and isfile(\"LOAD_SILENTLY\") then SILENT = true end;\n\t\tlocal okFetch, source = pcall(game.HttpGet, game, \"https://raw.githubusercontent.com/omniscientzzz/UE_undefined/refs/heads/main/UEEEEEEEE");\n\t\tif not okFetch then return end;\n\t\tlocal chunk = (loadstring or load)(source);\n\t\tif chunk then chunk() end;\n\t\t"
+            sharedSlot1_25.current = "local canCheck = type(isfile) == \"function\";\n\t\tif canCheck and not isfile(\"LOAD_PERSISTENT\") then return end;\n\t\tif canCheck and isfile(\"LOAD_SILENTLY\") then SILENT = true end;\n\t\tlocal okFetch, source = pcall(game.HttpGet, game, \"https://raw.githubusercontent.com/omniscientzzz/UE_undefined/refs/heads/main/UEEEEEEEE\");\n\t\tif not okFetch then return end;\n\t\tlocal chunk = (loadstring or load)(source);\n\t\tif chunk then chunk() end;\n\t\t"
             sharedSlot1_23.current(sharedSlot1_24.current, sharedSlot1_25.current)
           end
         end
@@ -29005,7 +28912,7 @@ local function directEntry(...)
             if not (not sharedSlot1_23.current) then
               sharedSlot1_23.current = getfenv().pcall
               sharedSlot1_24.current = getfenv().queue_on_teleport
-              sharedSlot1_25.current = "local canCheck = type(isfile) == \"function\";\n\t\tif canCheck and not isfile(\"LOAD_PERSISTENT\") then return end;\n\t\tif canCheck and isfile(\"LOAD_SILENTLY\") then SILENT = true end;\n\t\tlocal okFetch, source = pcall(game.HttpGet, game, \"https://https://raw.githubusercontent.com/omniscientzzz/UE_undefined/refs/heads/main/UEEEEEEEE");\n\t\tif not okFetch then return end;\n\t\tlocal chunk = (loadstring or load)(source);\n\t\tif chunk then chunk() end;\n\t\t"
+              sharedSlot1_25.current = "local canCheck = type(isfile) == \"function\";\n\t\tif canCheck and not isfile(\"LOAD_PERSISTENT\") then return end;\n\t\tif canCheck and isfile(\"LOAD_SILENTLY\") then SILENT = true end;\n\t\tlocal okFetch, source = pcall(game.HttpGet, game, \"https://raw.githubusercontent.com/omniscientzzz/UE_undefined/refs/heads/main/UEEEEEEEE\");\n\t\tif not okFetch then return end;\n\t\tlocal chunk = (loadstring or load)(source);\n\t\tif chunk then chunk() end;\n\t\t"
               sharedSlot1_23.current(sharedSlot1_24.current, sharedSlot1_25.current)
             end
           end
